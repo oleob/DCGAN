@@ -4,7 +4,7 @@ from os.path import join
 from sklearn.model_selection import train_test_split
 
 def create_lfw_paths_and_labels(directory):
-    directory = '../lfw'
+    directory = './lfw'
     image_paths = []
     image_labels = []
     #maleNames = open('male_names.txt','r').read().split('\n')
@@ -14,7 +14,7 @@ def create_lfw_paths_and_labels(directory):
         for image in listdir(folder_path):
             image_path = join(folder_path,image)
             image_paths.append(image_path)
-            image_labels.append([1])
+            image_labels.append(1)
             # if image in maleNames:
             #     image_labels.append([1])
             # else:
@@ -46,13 +46,16 @@ def create_dataset(image_paths, image_labels):
         image = tf.image.resize_images(image, [64, 64])
         image = tf.cast(image, tf.float32)
         image = tf.reshape(image,[64*64*3])
-        return image/255.0
+        return 1.0 - (2.0*image)/255.0
     images = tf.data.Dataset.from_tensor_slices(image_paths).map(decode_image)
     labels = tf.data.Dataset.from_tensor_slices(image_labels)
     return tf.data.Dataset.zip((images, labels))
 
-def train_test_data(directory):
+def train_test_data(directory, batch_size):
     image_paths, image_labels = create_lfw_paths_and_labels(directory) #TODO replace with ordinary function
+    #image_paths = image_paths[len(image_paths)%batch_size-1:]
+    #image_labels = image_labels[len(image_labels)%batch_size-1:]
+
     train_images, test_images, train_labels, test_labels = train_test_split(image_paths, image_labels, stratify=image_labels, test_size=0.25)
     return (train_images, test_images, train_labels, test_labels)
 
